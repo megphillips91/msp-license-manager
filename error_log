@@ -1,0 +1,5 @@
+[30-Dec-2019 18:32:14 UTC] PHP Fatal error:  Class 'MSP_License_Pro\MSP_License' not found in /home/mspmedia/public_html/wp-content/plugins/msp-license-manager/license-endpoint.php on line 22
+[30-Dec-2019 18:34:16 UTC] PHP Fatal error:  Class 'MSP_License_Pro\MSP_License' not found in /home/mspmedia/public_html/wp-content/plugins/msp-license-manager/license-endpoint.php on line 22
+[30-Dec-2019 18:57:28 UTC] PHP Fatal error:  Class 'MSP_License_Pro\MSP_License' not found in /home/mspmedia/public_html/wp-content/plugins/msp-license-manager/license-endpoint.php on line 22
+[30-Dec-2019 18:57:35 UTC] PHP Fatal error:  Class 'MSP_License_Pro\MSP_License' not found in /home/mspmedia/public_html/wp-content/plugins/msp-license-manager/license-endpoint.php on line 22
+[30-Dec-2019 18:57:43 UTC] PHP Fatal error:  Class 'MSP_License_Pro\MSP_License' not found in /home/mspmedia/public_html/wp-content/plugins/msp-license-manager/license-endpoint.php on line 22
