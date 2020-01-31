@@ -4,9 +4,9 @@ use \MSP_License;
 use \Datetime;
 use \DateTimeZone;
 use \DateInterval;
-/*
+
 require_once( $_SERVER['DOCUMENT_ROOT'] . '/wp-load.php' );
-//require_once(plugin_dir_path( __FILE__ ).'class-license.php');
+require_once(plugin_dir_path( __FILE__ ).'class-license.php');
 
 /**
  * Verifies remote posts
@@ -16,13 +16,7 @@ require_once( $_SERVER['DOCUMENT_ROOT'] . '/wp-load.php' );
  * @param  [type] $request_signature [description]
  * @return [type]                    [description]
  */
-function verify_mg($timestamp, $token, $apikey, $request_signature){
-	$combined = $timestamp.$token;
-	$calc_signature= hash_hmac('SHA256', $combined, $apikey);
-	if($request_signature == $calc_signature) {
-		return TRUE;
-	} else {return FALSE;}
-}
+
 
 /**
  * Begin the response
@@ -36,18 +30,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 //verify for security
-  $verified =  verify_mg($_REQUEST['timestamp'], $_REQUEST['token'], $_REQUEST['license_key'], $_REQUEST['signature']);
-  $response['verified'] = true;
+  //$verified =  verify_mg($_REQUEST['timestamp'], $_REQUEST['token'], $_REQUEST['license_key'], $_REQUEST['signature']);
+	$verified = true;
+	$response['verified'] = true;
 	$response['status'] = 'active';
-	$response =  json_encode($response);
-	echo $response;
-	die();
-/*
+
+
   if($verified){
     $qry = "select * from wp_msp_licenses where license_key = '".$_REQUEST['license_key']."' LIMIT 1";
     $license = $wpdb->get_row($qry);
-    $response['license'] = $license;
-
 
     //if no license found
     if(!$license){
@@ -98,8 +89,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		echo 'verification failed';
     die();
   }
-	*/
+
 
 }//is a post
+
+
 
 ?>
