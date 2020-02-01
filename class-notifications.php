@@ -1,36 +1,52 @@
 <?php
 namespace MSP_License_Pro;
+use \MSP_License;
+use \Datetime;
+use \DateTimeZone;
+use \DateInterval;
 
 /**
  * License Notification sets up to send emails through wp_mail
  * @param object $recipient is a WP User object
  * @param string $from_email is a valid email for the reply to
+ * @param object $msp_license is the license object
  * @param array $attachments is an array of attachments
  */
 
-add_shortcode('test_license_notification', 'test_license_notification_shortcode');
+add_shortcode('test_license_notification', __NAMESPACE__.'\\test_license_notification_shortcode');
 
 function test_license_notification_shortcode(){
   $user = get_user_by('ID', 1);
-  $message = new License_Expired_Email($user, 'meg.phillips@msp-media.org');
-  echo '<pre>'; var_dump($message); echo '</pre>';
+  $msp_license = new MSP_License('id', 8);
+  $message = new Domain_Change_Confirmation($user, 'meg.phillips@msp-media.org', $msp_license);
+  $message->send();
 }
 
 class License_Notification {
   public $to;
   public $first_name;
-  public $reply_to;
   public $message;
   public $subject;
+  private $msp_license;
   public $attachments;
 
-  public function __construct($recipient, $from_email, $attachments = NULL){
-    $this->headers = array('reply_to'=>$this->from_email, 'cc'=>'meg.phillips@msp-media.org');
-    $this->set_user_fields();
+  public function __construct($recipient, $from_email, $msp_license, $attachments = NULL){
+    $this->license = $msp_license;
+    $this->headers = array('reply_to'=>$from_email, 'cc'=>'meg.phillips@msp-media.org');
+    $this->set_user_fields($recipient);
+    $this->set_license_dates();
     $this->set_message();
     $this->set_subject();
+    // change content type to html from plain text
+    add_filter( 'wp_mail_content_type', function (){
+      return "text/html";
+      } );
   }
-/*
+
+  private function set_content_type_header(){
+      return "text/html";
+  }
+
   public function send(){
     $sent = wp_mail(
       $this->to,
@@ -41,38 +57,42 @@ class License_Notification {
     );
     return $sent;
   }
-  */
 
-  private set_user_fields(){
+  private function set_license_dates(){
+    $date_object = new DateTime($this->license->issue_date, new DateTimeZone(get_option('timezone_string')));
+    $this->issue_date = $date_object->format('F d, Y');
+    $this->expiration_date = $this->license->license_expiration->format('F d, Y');
+  }
+
+  protected function set_user_fields($user){
     $name = explode(' ', $user->data->display_name);
     $this->first_name = $name[0];
     $this->to = $user->data->user_email;
   }
 
-  private function set_subject(){
+  protected function set_subject(){
     $subject = '';
     $this->subject = $subject;
   }
 
-  private function set_message(){
+  protected function set_message(){
     $html = '';
-    $this->html = $html;
+    $this->message = $html;
   }
 
-
-}//end class
+}//end base parent class declaration
 
 
 class License_Expired_Email extends License_Notification {
 
-  private function set_message(){
+  protected function set_message(){
     $html = '<p>'.$this->first_name.',<p>';
-    $html .= '<p>When we last checked, your license for Charter Bookings Pro was issued on '.$issue_date.' for a term of 365 days. Just wanted to check in. </p></p>Are you planning to continue using Charter Bookings Pro?';
-    $html .= '<p>Meg Phillips<br>>Author Charter Bookings Pro<br>meg.phillips@msp-media.org</p>';
+    $html .= '<p>When we last checked, your license for Charter Bookings Pro was issued on '.$this->issue_date.' for a term of 365 days and the expiration date is '.$this->expiration_date.'. Just wanted to check in. </p></p>We hope you Charter Bookings is working great for you. Are you planning to continue using Charter Bookings Pro?';
+    $html .= '<p>Meg Phillips<br>Author Charter of Bookings Pro<br>meg.phillips@msp-media.org</p>';
     $this->message = $html;
   }
 
-  private function set_subject(){
+  protected function set_subject(){
     $subject = 'Charter Bookings Pro License Expiration';
     $this->subject = $subject;
   }
@@ -81,58 +101,63 @@ class License_Expired_Email extends License_Notification {
 
 class Invalid_Domain_Email extends License_Notification {
 
-}
-
-
-
-/**
- */
-/*
-
-class License_Notification {
-  private set_message;
-
-  public function __construct($type = NULL, $users){
-      $this->type = $type;
+  protected function set_message(){
+    $this->license->set_billing_information();
+    $html = '<p>'.$this->first_name.',<p>';
+    $html .= '<p>When we last checked, your license for Charter Bookings Pro was first activated on '.$this->license->domain.'. Just wanted to check in. </p></p>We hope you Charter Bookings is working great for you, but it looks like this website does not match the domain we have on file.</p>
+    <p>Your license is valid for one domain at a time. If you would like to change the domain on which you are using Charter Bookings Pro, that is no problem. </p>
+    <p>'.$this->license->billing_information['first_name'].' '.$this->license->billing_information['last_name'].' purchased the license for Charter Bookings Pro. We will email '.$this->license->billing_information['first_name'].' and confirm that it is okay want to use the license on this domain instead of the original domain. <p><p>If you feel you have received this email in error, please reply and someone will help you sort out this issue. ';
+    $html .= '<p>Thank you, <br>Meg Phillips<br>Author of Charter Bookings Pro<br>meg.phillips@msp-media.org</p>';
+    $this->message = $html;
   }
 
-  public function send() {
-    foreach ($users as $user){
-      $to = $user->user_email;
-      $name = $user->display_name;
-      $setfunction = 'set_'.$this->type;
-      $message = $this->$setfunction();
-      $headers = array();
-      $headers['reply_to'] = 'meg.phillips@msp-media.org';
-      return wp_mail(
-        $to,
-        $message['subject'],
-        $message['message'],
-        $headers
-      );
-    }
-  }
-
-
-  private function set_tell_admins($name){
-    $message = '<p>Hi '.$name.'</p>';
-    $message = '<p>It appears that your Charter Bookings Pro license is invalid. Please contact <a href="mailto:meg.phillips@msp-media.org">MSP Media</a> with regard to this issue.  Otherwise, your Pro features could be disabled which could cause site errors. We appreciate your prompt attention to this matter.</p>
-
-    <p>If you have recieved this message in error, we apologize. Your account manager has also been notified and is investigating this issue manually. </p>';
-
-    $message .= '<p>Thank You,<br>Meg Phillips<br>meg.phillips@msp-media.org<br><a href="msp-media.org">MSP-Media.org</a>';
-    $subject = 'Charter Bookings Pro License';
-    return array('message'=>$message, 'subject'=>$subject);
-
-  }
-
-  private function set_tell_meg(){
-    $message = '<strong>'.$_SERVER['HTTP_HOST'].'</strong> appears to be running Charter Bookings Pro with invalid license. Please check and respond.';
-    $subject = 'Invalid License for CB Pro';
-    return array('message'=>$message, 'subject'=>$subject);
+  protected function set_subject(){
+    $subject = 'Charter Bookings Pro Domain Mismatch';
+    $this->subject = $subject;
   }
 
 }
-*/
+
+class Domain_Change_Confirmation extends License_Notification{
+
+  protected function set_user_fields($user){
+    $this->license->set_billing_information();
+    $this->first_name = $this->license->billing_information['first_name'];
+    $this->to = $this->license->billing_information['email'];
+  }
+
+  protected function set_message(){
+    $html = '<p>'.$this->license->billing_information['first_name'].',</p>';
+    $html .= '<p>Your License for Charter Bookings Pro is for one domain. The license we are emailing you regarding was first activated for '.$this->license->domain.'. This email is to notify you that another domain is trying to use your license. </p>';
+    $html .= '<p>To resolve this matter, you could purchase another license if you need to run two websites or confirm that you want your license to be moved to a different domain.</p> <p>Please respond to us as soon as possible to prevent your Charter Bookings Pro from being deactivated. </p>';
+    $html .= '<p>Thank you, <br>Meg Phillips<br>Author of Charter Bookings Pro<br>meg.phillips@msp-media.org</p>';
+    $this->message = $html;
+
+  }
+
+  protected function set_subject(){
+    $subject = 'Charter Bookings Pro - Confirm Domain Change';
+    $this->subject = $subject;
+  }
+
+
+}
+
+class Licesnse_Not_Found_Email extends License_Notification {
+
+  protected function set_message(){
+    $this->license->set_billing_information();
+    $html = '<p>'.$this->first_name.',</p>';
+    $html .= '<p>It appears you tried to validate Charter Bookings Pro with a license key that does not match our records. Please be sure to copy and paste the license key rather than trying to type it in. </p><p>You can always access your downloads and license key at <a ref="https://msp-media.org/my-account/" >Your Account: https://msp-media.org/my-account/ </a></p><p>If you are having trouble activating your license, please respond to this email and someone from our team can help get you going. </p>';
+    $html .= '<p>Thank you, <br>Meg Phillips<br>Author of Charter Bookings Pro<br>meg.phillips@msp-media.org</p>';
+    $this->message = $html;
+  }
+
+  protected function set_subject(){
+    $subject = 'Charter Bookings Pro License Key Not Found';
+    $this->subject = $subject;
+  }
+
+}
 
  ?>

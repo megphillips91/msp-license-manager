@@ -38,7 +38,7 @@ namespace MSP_License_Pro;
   * Include plugin files
   */
  require_once plugin_dir_path( __FILE__ ) . 'class-license.php';
- //require_once plugin_dir_path( __FILE__ ) . 'class-notifications.php';
+ require_once plugin_dir_path( __FILE__ ) . 'class-notifications.php';
 
 
 
