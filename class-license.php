@@ -58,6 +58,17 @@ class MSP_License {
        $this->get_license_by_id($value);
        $this->set_license_expiration();
        break;
+    case 'key':
+      $this->get_license_by_key($value);
+      $this->set_license_expiration();
+   }
+ }
+
+ public function get_license_by_key($key){
+   global $wpdb;
+   $license = $wpdb->get_row("select * from wp_msp_licenses where license_key='".$key."'");
+   foreach($license as $key=>$value){
+     $this->$key = $value;
    }
  }
 
@@ -86,6 +97,23 @@ class MSP_License {
      array('domain'=>$host),
      array('id'=>$this->id)
    );
+ }
+
+ public function check_date(){
+   $date = new DateTime(NULL, new DateTimeZone(get_option('timezone_string')));
+   if($date >= $this->license_expiration){
+     return false;
+   } else {
+     return 'active';
+   }
+ }
+
+ public function check_host($host){
+   if($this->domain == $host){
+     return $active;
+   } else {
+     return false;
+   }
  }
 
 
