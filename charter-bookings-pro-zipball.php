@@ -15,14 +15,12 @@ if(!empty($_GET['license_key'])){
   if($active){
     $file = '/home/mspmedia/premium_products/charter-bookings-pro.zip';
     header('Content-Description: File Transfer');
-    header('Content-Type: application/octet-stream');
-    header('Content-Disposition: attachment; filename=' . basename($file));
-    header('Content-Transfer-Encoding: binary');
-    header('Expires: 0');
+    header("Content-disposition: attachment;");
+    header('Content-type: application/zip');
     header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
     header('Pragma: public');
     header('Content-Length: ' . filesize($file));
-    ob_clean();
+    //ob_clean();
     flush();
     readfile($file);
     exit;
