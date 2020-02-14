@@ -114,6 +114,8 @@ class MSP_License {
    } else {
      return false;
    }
+ }
+ 
  public function set_billing_information(){
    $order = wc_get_order($this->order_id);
    $billing_information = array();
